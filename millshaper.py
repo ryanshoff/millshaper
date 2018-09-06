@@ -4,10 +4,11 @@ import math
 
 diametricPitch = 20
 NCutter = 40
-NGear = 60
-ZStart = 0
-ZEnd = -.50
+NGear = 54
+ZStart = .10
+ZEnd = -.60
 depthOfCut = .002
+cutterOffset = .050
 
 pitchCircleDiaGear = NGear / diametricPitch
 pitchCircleRadGear = pitchCircleDiaGear / 2
@@ -15,7 +16,7 @@ pitchCircleRadGear = pitchCircleDiaGear / 2
 pitchCircleDiaCutter = NCutter / diametricPitch
 pitchCircleRadCutter = pitchCircleDiaCutter / 2
 
-cuttingRad = pitchCircleRadGear - pitchCircleRadCutter
+cuttingRad = pitchCircleRadGear - pitchCircleRadCutter - cutterOffset
 
 fullDepth = 2.2 / diametricPitch
 
@@ -23,13 +24,6 @@ ratio = NGear / NCutter
 
 circularPitch = math.pi / diametricPitch
 depthOfCutAngle = 360.0 / (math.pi * pitchCircleDiaGear / depthOfCut)
-
-# lead simple lead in 
-
-X = 0
-Y = cuttingRad - fullDepth
-A = 0
-B = 0
 
 
 class Modal(object):
@@ -41,8 +35,19 @@ class Modal(object):
 		self.A = None
 		self.B = None
 		self.F = None
+
+	def stroke(self, X=None, Y=None, depthOfCut=None, ZStart=None, ZEnd=None, A=None, F=None):
+		angle = math.atan(X/Y)
+		length = math.sqrt((X*X) + (Y*Y))
+		length -= depthOfCut
+		Xprime = (length * math.sin(angle))
+		Yprime = (length * math.cos(angle))
+		self.Gprint(0, X, Y, ZStart, A)
+		self.Gprint(1, X, Y, ZEnd, A, F=F)
+		self.Gprint(0, Xprime, Yprime, ZEnd, A)
+		self.Gprint(0, Xprime, Yprime, ZStart, A)
 	
-	def print(self, G=None, X=None, Y=None, Z=None, A=None, B=None, F=None):
+	def Gprint(self, G=None, X=None, Y=None, Z=None, A=None, B=None, F=None):
 		newline = False
 		if G != self.G:
 			print('G{:d}'.format(G), end='')
@@ -75,27 +80,30 @@ class Modal(object):
 		if newline:
 			print()
 
+# lead simple lead in 
 
-def translate():
-	global X 
-	global Y 
-	X = (cuttingRad * math.sin(math.radians(B)))
-	Y = (cuttingRad * math.cos(math.radians(B)))
-	 
+X = 0
+Y = cuttingRad - fullDepth
+A = 0
+B = 0
 
 cnc = Modal()
 
+print('G59.1G0X0Y0')
+print('G43Z.5H12')
+print('F20')
+print('M8')
 while Y <= cuttingRad:
-	cnc.print(0, X, Y, ZStart, A)
-	cnc.print(1, X, Y, ZEnd, A)
-	cnc.print(0, X, Y - depthOfCut, ZEnd, A)
-	cnc.print(0, X, Y - depthOfCut, ZStart, A)
+	cnc.stroke(X, Y, depthOfCut, ZStart, ZEnd, A)
 	Y += depthOfCut
 
-cnc.print(0, X, Y, ZStart, A)
-while A < 360.0:
-	cnc.print(0, X, Y, ZStart, A)
+Y = cuttingRad
+
+cnc.Gprint(0, X, Y, ZStart, A)
+while A <= 360.0:
+	cnc.stroke(X, Y, depthOfCut, ZStart, ZEnd, A)
 	A += depthOfCutAngle
 	B += depthOfCutAngle * ratio
-	translate()
+	X = (cuttingRad * math.sin(math.radians(B)))
+	Y = (cuttingRad * math.cos(math.radians(B)))
 
