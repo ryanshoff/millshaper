@@ -31,30 +31,70 @@ Y = cuttingRad - fullDepth
 A = 0
 B = 0
 
+
+class Modal(object):
+	def __init__(self):
+		self.G = None
+		self.X = None
+		self.Y = None
+		self.Z = None
+		self.A = None
+		self.B = None
+		self.F = None
+	
+	def print(self, G=None, X=None, Y=None, Z=None, A=None, B=None, F=None):
+		newline = False
+		if G != self.G:
+			print('G{:d}'.format(G), end='')
+			self.G = G
+			newline = True
+		if X != self.X:
+			print('X{:.4f}'.format(X), end='')
+			self.X = X
+			newline = True
+		if Y != self.Y:
+			print('Y{:.4f}'.format(Y), end='')
+			self.Y = Y
+			newline = True
+		if Z != self.Z:
+			print('Z{:.4f}'.format(Z), end='')
+			self.Z = Z
+			newline = True
+		if A != self.A:
+			print('A{:.4f}'.format(A), end='')
+			self.A = A
+			newline = True
+		if B != self.B:
+			print('B{:.4f}'.format(B), end='')
+			self.B = B
+			newline = True
+		if F != self.F:
+			print('F{:.4f}'.format(F), end='')
+			self.F = F
+			newline = True
+		if newline:
+			print()
+
+
 def translate():
 	global X 
 	global Y 
-	global A
-	global B
-	X += (cuttingRad * math.sin(B))
-	Y += (cuttingRad * math.cos(B))
-	A -= B
-	B = 0
+	X = (cuttingRad * math.sin(math.radians(B)))
+	Y = (cuttingRad * math.cos(math.radians(B)))
 	 
 
+cnc = Modal()
+
 while Y <= cuttingRad:
-	print("G0X{:.4f}Y{:.4f}Z{:.4f}A{:.4f}".format(X, Y, ZStart, A))
-	print("G1X{:.4f}Y{:.4f}Z{:.4f}A{:.4f}".format(X, Y, ZEnd, A))
-	print("G0X{:.4f}Y{:.4f}Z{:.4f}A{:.4f}".format(X, Y - depthOfCut, ZEnd, A))
-	print("G0X{:.4f}Y{:.4f}Z{:.4f}A{:.4f}".format(X, Y - depthOfCut, ZStart, A))
+	cnc.print(0, X, Y, ZStart, A)
+	cnc.print(1, X, Y, ZEnd, A)
+	cnc.print(0, X, Y - depthOfCut, ZEnd, A)
+	cnc.print(0, X, Y - depthOfCut, ZStart, A)
 	Y += depthOfCut
 
-print(depthOfCutAngle)
-print(ratio)
-
-print("G0X{:.4f}Y{:.4f}Z{:.4f}A{:.4f}B{:.4f}".format(X, Y, ZStart, A, B))
+cnc.print(0, X, Y, ZStart, A)
 while A < 360.0:
-	print("G0X{:.4f}Y{:.4f}Z{:.4f}A{:.4f}B{:.4f}".format(X, Y, ZStart, A, B))
+	cnc.print(0, X, Y, ZStart, A)
 	A += depthOfCutAngle
 	B += depthOfCutAngle * ratio
 	translate()
