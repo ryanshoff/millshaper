@@ -83,7 +83,7 @@ class Modal(object):
 # lead simple lead in 
 
 X = 0
-Y = cuttingRad - fullDepth
+Y = 0
 A = 0
 B = 0
 
@@ -91,19 +91,34 @@ cnc = Modal()
 
 print('G59.1G0X0Y0')
 print('G43Z.5H12')
-print('F20')
+print('F20.0')
 print('M8')
-while Y <= cuttingRad:
-	cnc.stroke(X, Y, depthOfCut, ZStart, ZEnd, A)
-	Y += depthOfCut
 
-Y = cuttingRad
+#while Y <= cuttingRad:
+#	cnc.stroke(X, Y, depthOfCut, ZStart, ZEnd, A)
+#	Y += depthOfCut
+
+#Y = cuttingRad
 
 cnc.Gprint(0, X, Y, ZStart, A)
-while A <= 360.0:
+
+endAngle = 360.0 * 1
+atDepth = False
+currentRad = cuttingRad - fullDepth
+
+while A <= endAngle:
+	X = (currentRad * math.sin(math.radians(B)))
+	Y = (currentRad * math.cos(math.radians(B)))
 	cnc.stroke(X, Y, depthOfCut, ZStart, ZEnd, A)
+	if not atDepth:
+		currentRad += depthOfCut
+		if currentRad > cuttingRad:
+			currentRad = cuttingRad
+			atDepth = True
+			endAngle += A
+			
 	A += depthOfCutAngle
 	B += depthOfCutAngle * ratio
-	X = (cuttingRad * math.sin(math.radians(B)))
-	Y = (cuttingRad * math.cos(math.radians(B)))
 
+print('M9')
+print('G30')
