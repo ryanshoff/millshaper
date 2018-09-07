@@ -6,9 +6,10 @@ diametricPitch = 20
 NCutter = 40
 NGear = 54
 ZStart = .10
-ZEnd = -.60
+ZEnd = -.70
 depthOfCut = .002
 cutterOffset = .050
+backOff = .120
 
 pitchCircleDiaGear = NGear / diametricPitch
 pitchCircleRadGear = pitchCircleDiaGear / 2
@@ -23,7 +24,11 @@ fullDepth = 2.2 / diametricPitch
 ratio = NGear / NCutter
 
 circularPitch = math.pi / diametricPitch
-depthOfCutAngle = 360.0 / (math.pi * pitchCircleDiaGear / depthOfCut)
+depthOfCutAngle = 360.0 / (math.pi * pitchCircleDiaCutter / depthOfCut)
+
+print(ratio)
+print(depthOfCutAngle)
+quit()
 
 
 class Modal(object):
@@ -66,7 +71,7 @@ class Modal(object):
 			self.Z = Z
 			newline = True
 		if A != self.A:
-			print('A{:.4f}'.format(A), end='')
+			print('A-{:.4f}'.format(A), end='')
 			self.A = A
 			newline = True
 		if B != self.B:
@@ -89,9 +94,11 @@ B = 0
 
 cnc = Modal()
 
-print('G59.1G0X0Y0')
-print('G43Z.5H12')
-print('F20.0')
+print('G59.1G90')
+print('G0X0Y0')
+print('M6T20')
+print('G43Z.5H20')
+print('F100.0')
 print('M8')
 
 #while Y <= cuttingRad:
@@ -107,9 +114,9 @@ atDepth = False
 currentRad = cuttingRad - fullDepth
 
 while A <= endAngle:
-	X = (currentRad * math.sin(math.radians(B)))
-	Y = (currentRad * math.cos(math.radians(B)))
-	cnc.stroke(X, Y, depthOfCut, ZStart, ZEnd, A)
+	X = (currentRad * math.sin(math.radians(-B)))
+	Y = (currentRad * math.cos(math.radians(-B)))
+	cnc.stroke(X, Y, backOff, ZStart, ZEnd, A)
 	if not atDepth:
 		currentRad += depthOfCut
 		if currentRad > cuttingRad:
@@ -117,8 +124,8 @@ while A <= endAngle:
 			atDepth = True
 			endAngle += A
 			
-	A += depthOfCutAngle
-	B += depthOfCutAngle * ratio
+	A += (depthOfCutAngle / ratio)
+	B += depthOfCutAngle
 
 print('M9')
 print('G30')
